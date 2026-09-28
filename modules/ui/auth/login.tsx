@@ -3,18 +3,21 @@
 import { Button } from '@/components/ui/button';
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { loginSchema, type LoginSchemaDTO } from '@/modules/schema';
+import { Spinner } from '@/components/ui/spinner';
+import { toast } from '@/components/ui/toast';
+import { loginSchema, LoginSchemaDTO } from '@/schema/user.schema';
+import { useUserMutations } from '@/service/mutations';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 
-type LoginModuleProps = {
- onSubmit?: SubmitHandler<LoginSchemaDTO>;
-};
 
-export default function LoginModule({ onSubmit }: LoginModuleProps) {
+export default function LoginModule() {
+ const router = useRouter()
+ const { login } = useUserMutations()
  const [showPassword, setShowPassword] = useState(false);
  const form = useForm<LoginSchemaDTO>({
   defaultValues: {
@@ -23,10 +26,30 @@ export default function LoginModule({ onSubmit }: LoginModuleProps) {
   },
   resolver: zodResolver(loginSchema),
  });
- const handleLogin = onSubmit ?? (() => undefined);
+
  const emailError = form.formState.errors.email;
  const passwordError = form.formState.errors.password;
+ const isSubmitting = form.formState.isSubmitting || login.isPending
 
+
+ const handleLogin: SubmitHandler<LoginSchemaDTO> = (data) => {
+  login.mutate(data, {
+   onSuccess(data) {
+    toast.add({
+     type: "success",
+     description: data?.message
+    })
+    router.push("/")
+   },
+   onError: (error) => {
+    toast.add({
+     type: "error",
+     description: error.message
+    })
+
+   }
+  })
+ }
  return (
   <div className='w-full'>
    <header className='mb-8 sm:mb-10'>
@@ -95,10 +118,13 @@ export default function LoginModule({ onSubmit }: LoginModuleProps) {
     <Button
      type='submit'
      size={"xl"}
-     disabled={form.formState.isSubmitting}
+     disabled={isSubmitting}
      className='mt-7 w-full rounded-xl bg-primary text-[15px] font-semibold text-white shadow-none hover:bg-primary/80 focus-visible:ring-[#155EEF]/25'
     >
-     {form.formState.isSubmitting ? 'Signing in' : 'Sign in'}
+     {isSubmitting ? <>
+      <Spinner />
+      Signing in
+     </> : 'Sign in'}
     </Button>
    </form>
 

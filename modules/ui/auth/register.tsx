@@ -3,20 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { registerSchema, type RegisterSchemaDTO } from '@/modules/schema';
+import { Spinner } from '@/components/ui/spinner';
+import { toast } from '@/components/ui/toast';
+import { registerSchema, RegisterSchemaDTO } from '@/schema/user.schema';
+import { useUserMutations } from '@/service/mutations';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 
-type RegisterModuleProps = {
- onSubmit?: SubmitHandler<RegisterSchemaDTO>;
-};
+
 
 type PasswordField = 'password' | 'confirmPassword';
 
-export default function RegisterModule({ onSubmit }: RegisterModuleProps) {
+export default function RegisterModule() {
+ const navigate = useRouter()
+ const { register } = useUserMutations()
  const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
   password: false,
   confirmPassword: false,
@@ -30,16 +35,34 @@ export default function RegisterModule({ onSubmit }: RegisterModuleProps) {
   },
   resolver: zodResolver(registerSchema),
  });
- const handleRegister = onSubmit ?? (() => undefined);
+
  const nameError = form.formState.errors.name;
  const emailError = form.formState.errors.email;
  const passwordError = form.formState.errors.password;
  const confirmPasswordError = form.formState.errors.confirmPassword;
+ const isSubmitting = form.formState.isSubmitting || register.isPending
 
  const togglePassword = (field: PasswordField) => {
   setVisiblePasswords((current) => ({ ...current, [field]: !current[field] }));
  };
 
+ const handleRegister: SubmitHandler<RegisterSchemaDTO> = (data) => {
+  register.mutate(data, {
+   onSuccess: (res) => {
+    toast.add({
+     type: "success",
+     description: res.message
+    })
+    navigate.push("/auth/login")
+   },
+   onError: (error) => {
+    toast.add({
+     type: "error",
+     description: error.message
+    })
+   }
+  })
+ }
  return (
   <div className='w-full'>
    <header className='mb-8 sm:mb-9'>
@@ -166,10 +189,13 @@ export default function RegisterModule({ onSubmit }: RegisterModuleProps) {
     <Button
      type='submit'
      size={"xl"}
-     disabled={form.formState.isSubmitting}
+     disabled={isSubmitting}
      className={"w-full"}
     >
-     {form.formState.isSubmitting ? 'Creating account' : 'Create account'}
+     {isSubmitting ? <>
+      <Spinner />
+      Creating account
+     </> : 'Create account'}
     </Button>
    </form>
 
