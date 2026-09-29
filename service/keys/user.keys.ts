@@ -3,5 +3,6 @@
 export const userKeys = {
  login: ["login"],
  logout: ["logout"],
- register: ["register"]
+ register: ["register"],
+ getUsers: ["getUsers"],
 }

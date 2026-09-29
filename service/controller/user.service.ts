@@ -26,5 +26,11 @@ export const userServices = {
    rest,
   )
   return data
+ },
+ getUsers: async () => {
+  const { data } = await publicApi.get<ApiResponse>(
+   `${USERMANAGEMENT}`,
+  )
+  return data
  }
 }
