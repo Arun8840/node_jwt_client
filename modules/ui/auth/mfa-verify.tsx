@@ -8,7 +8,7 @@ import { toast } from '@/components/ui/toast';
 import { verifyMfaSchema, VerifyMfaDTO } from '@/schema/user.schema';
 import { useUserMutations } from '@/service/mutations';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Divide, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
