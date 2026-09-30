@@ -8,8 +8,14 @@ const userQueries = {
  getUsers: queryOptions({
   queryKey: userKeys.getUsers,
   queryFn: () => userServices.getUsers()
+ }),
+
+ getMe: queryOptions({
+  queryKey: userKeys.getMe,
+  queryFn: () => userServices.getMe()
  })
 }
 
 
 export const useGetUsers = () => useQuery(userQueries.getUsers);
+export const useGetMe = () => useQuery(userQueries.getMe);

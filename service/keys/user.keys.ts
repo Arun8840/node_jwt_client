@@ -5,4 +5,5 @@ export const userKeys = {
  logout: ["logout"],
  register: ["register"],
  getUsers: ["getUsers"],
+ getMe: ["getMe"]
 }

@@ -1,6 +1,6 @@
 import { LoginSchemaDTO, RegisterSchemaDTO } from "@/schema/user.schema"
 import { publicApi } from "../apiClient"
-import { ApiResponse } from "@/types"
+import { ApiResponse, ProfileReponse } from "@/types"
 
 const USERMANAGEMENT = "/users"
 
@@ -30,6 +30,12 @@ export const userServices = {
  getUsers: async () => {
   const { data } = await publicApi.get<ApiResponse>(
    `${USERMANAGEMENT}`,
+  )
+  return data
+ },
+ getMe: async () => {
+  const { data } = await publicApi.get<ApiResponse<ProfileReponse>>(
+   `${USERMANAGEMENT}/getme`,
   )
   return data
  }
