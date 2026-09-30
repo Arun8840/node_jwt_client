@@ -2,23 +2,17 @@
 import { Button } from '@/components/ui/button';
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/toast';
 import { confirmMfaSchema, disableMfaSchema, enableMfaSchema } from '@/schema/user.schema';
 import { useUserMutations } from '@/service/mutations';
-import { MfaEnableResponse } from '@/types';
+import { MfaEnableResponse, ProfileReponse } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Copy, KeyRound, RotateCcw, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
-import { useForm, Controller, type Control, type Path, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
-
-
-interface SettingsProps {
-  mfaEnabled: boolean
-  mfaPending: boolean
-}
+import CodeSlots from './code-slots';
 
 type EnableValues = z.infer<typeof enableMfaSchema>
 type ConfirmValues = z.infer<typeof confirmMfaSchema>
@@ -32,28 +26,18 @@ const toastHanlder = (message: string, type: "success" | "error") => {
   })
 }
 
-function CodeSlots<T extends { code: string }>({ control, name = 'code' as Path<T>, maxLength = 6 }: { control: Control<T>, name?: Path<T>, maxLength?: number }) {
-  const slots = Array.from({ length: maxLength }, (_, index) => index)
-
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <InputOTP maxLength={maxLength} value={field.value} onChange={field.onChange}>
-          <InputOTPGroup>
-            {slots.map((index) => <InputOTPSlot key={index} index={index} />)}
-          </InputOTPGroup>
-        </InputOTP>
-      )}
-    />
-  )
-}
-
-export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
+export default function SecuritySettings({ user }: { user: ProfileReponse }) {
   const { enableMfa, confirmMfa, disableMfa } = useUserMutations()
   const [enrollment, setEnrollment] = useState<MfaEnableResponse | null>(null)
   const [requestingDisable, setRequestingDisable] = useState(false)
+  // the switch reflects the pending intent, the server stays the source of truth
+  const [switchOn, setSwitchOn] = useState(user.isMfaEnabled)
+  const [syncedMfaEnabled, setSyncedMfaEnabled] = useState(user.isMfaEnabled)
+
+  if (syncedMfaEnabled !== user.isMfaEnabled) {
+    setSyncedMfaEnabled(user.isMfaEnabled)
+    setSwitchOn(user.isMfaEnabled)
+  }
 
   const isPending = enableMfa.isPending || confirmMfa.isPending || disableMfa.isPending
 
@@ -79,12 +63,18 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
   const confirmCodeError = confirmForm.formState.errors.code
 
   const handleSwitch = (checked: boolean) => {
-    setRequestingDisable(!checked)
+    setSwitchOn(checked)
+
     if (checked) {
+      setRequestingDisable(false)
       enableForm.reset()
-    } else {
-      disableForm.reset()
+      return
     }
+
+    if (!user.isMfaEnabled) return
+
+    setRequestingDisable(true)
+    disableForm.reset()
   }
 
   const startEnroll: SubmitHandler<EnableValues> = (values) => {
@@ -122,11 +112,13 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
 
   const stopEnroll = () => {
     setEnrollment(null)
+    setSwitchOn(false)
     confirmForm.reset()
   }
 
   const cancelDisable = () => {
     setRequestingDisable(false)
+    setSwitchOn(user.isMfaEnabled)
     disableForm.reset()
   }
 
@@ -134,6 +126,7 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
     disableMfa.mutate(values, {
       onSuccess: (data) => {
         setRequestingDisable(false)
+        setSwitchOn(false)
         disableForm.reset()
         toastHanlder(data?.message, "success")
       },
@@ -151,11 +144,11 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
   }
 
   return (
-    <div className='w-full flex flex-col gap-4'>
+    <div className='w-full flex flex-col gap-4 pt-2'>
       <FieldSet>
         <FieldLabel>MFA Authentication</FieldLabel>
         <FieldDescription>
-          {mfaEnabled
+          {user.isMfaEnabled
             ? 'Two-factor authentication is active on this account.'
             : 'Add an authenticator app as a second factor. You will need a recovery code if you lose the device.'}
         </FieldDescription>
@@ -167,14 +160,14 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
             <Switch
               disabled={isPending}
               id="enable-mfa"
-              checked={mfaEnabled}
+              checked={switchOn}
               onCheckedChange={handleSwitch}
             />
           </Field>
         </FieldGroup>
       </FieldSet>
 
-      {requestingDisable && !mfaEnabled && <form onSubmit={disableForm.handleSubmit(finishDisable)}>
+      {requestingDisable && <form onSubmit={disableForm.handleSubmit(finishDisable)}>
         <FieldSet>
           <FieldGroup className='gap-4'>
             <div className='flex items-start gap-2 rounded-lg bg-[#FFFAEB] p-3 text-sm text-[#B54708]'>
@@ -209,7 +202,7 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
         </FieldSet>
       </form>}
 
-      {!mfaEnabled && !requestingDisable && !enrollment && <form onSubmit={enableForm.handleSubmit(startEnroll)}>
+      {switchOn && !user.isMfaEnabled && !enrollment && <form onSubmit={enableForm.handleSubmit(startEnroll)}>
         <FieldSet>
           <FieldGroup className='gap-4'>
             <Field data-invalid={Boolean(passwordError)} className='gap-2'>
@@ -237,7 +230,7 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
             <FieldLabel>Setup key</FieldLabel>
             <FieldDescription>Prefer to type it in? Enter this key in your authenticator app.</FieldDescription>
             <div className='flex items-center gap-2'>
-              <code className='flex-1 rounded-md bg-[#F8FAFC] px-3 py-2 font-mono text-sm break-all'>{enrollment.secret}</code>
+              <code className='flex-1 rounded-md bg-[#F8FAFC] px-2 py-2 font-mono text-sm break-all'>{enrollment.secret}</code>
               <Button type='button' variant={"secondary"} size={"icon"} aria-label='Copy setup key' onClick={() => copyAll(enrollment.secret)}>
                 <Copy />
               </Button>
@@ -285,7 +278,7 @@ export default function Settings({ mfaEnabled, mfaPending }: SettingsProps) {
         </FieldGroup>
       </FieldSet>}
 
-      {mfaPending && !enrollment && !mfaEnabled && <div className='flex items-start gap-2 rounded-lg bg-[#EFF8FF] p-3 text-sm text-[#175CD3]'>
+      {user.mfaPending && !enrollment && !user.isMfaEnabled && !switchOn && <div className='flex items-start gap-2 rounded-lg bg-[#EFF8FF] p-3 text-sm text-[#175CD3]'>
         <TriangleAlert className='size-4 shrink-0 mt-0.5' />
         <span>An enrollment is already in progress. Re-run setup to generate a new secret.</span>
       </div>}
