@@ -1,12 +1,20 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { userKeys } from "../keys/user.keys"
 import { userServices } from "../controller/user.service"
-import { LoginSchemaDTO, RegisterSchemaDTO } from "@/schema/user.schema"
+import {
+  ConfirmMfaDTO,
+  DisableMfaDTO,
+  EnableMfaDTO,
+  LoginSchemaDTO,
+  RegisterSchemaDTO,
+  ResetMfaDTO,
+  VerifyMfaDTO,
+} from "@/schema/user.schema"
 
 
 
 export const useUserMutations = () => {
-
+  const queryClient = useQueryClient()
 
   const login = useMutation({
     mutationKey: userKeys.login,
@@ -26,11 +34,51 @@ export const useUserMutations = () => {
     retry: false
   })
 
+  const enableMfa = useMutation({
+    mutationKey: userKeys.enableMfa,
+    mutationFn: (req: EnableMfaDTO) => userServices.enableMfa(req),
+    retry: false,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.getMe })
+  })
+
+  const confirmMfa = useMutation({
+    mutationKey: userKeys.confirmMfa,
+    mutationFn: (req: ConfirmMfaDTO) => userServices.confirmMfa(req),
+    retry: false,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.getMe })
+  })
+
+  const disableMfa = useMutation({
+    mutationKey: userKeys.disableMfa,
+    mutationFn: (req: DisableMfaDTO) => userServices.disableMfa(req),
+    retry: false,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.getMe })
+  })
+
+  const verifyMfa = useMutation({
+    mutationKey: userKeys.verifyMfa,
+    mutationFn: (req: VerifyMfaDTO) => userServices.verifyMfa(req),
+    retry: false,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.getMe })
+  })
+
+  const resetMfa = useMutation({
+    mutationKey: userKeys.resetMfa,
+    mutationFn: (req: ResetMfaDTO) => userServices.resetMfa(req),
+    retry: false,
+    onSuccess: () => queryClient.removeQueries({ queryKey: userKeys.getMe })
+  })
+
 
   return {
     login,
     register,
-    logout
+    logout,
+    enableMfa,
+    confirmMfa,
+    disableMfa,
+    verifyMfa,
+    resetMfa
   }
 
 }

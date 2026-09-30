@@ -16,52 +16,61 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 
 
 export default function LoginModule() {
- const router = useRouter()
- const { login } = useUserMutations()
- const [showPassword, setShowPassword] = useState(false);
- const form = useForm<LoginSchemaDTO>({
-  defaultValues: {
-   email: '',
-   password: '',
-  },
-  resolver: zodResolver(loginSchema),
- });
-
- const emailError = form.formState.errors.email;
- const passwordError = form.formState.errors.password;
- const isSubmitting = form.formState.isSubmitting || login.isPending
-
-
- const handleLogin: SubmitHandler<LoginSchemaDTO> = (data) => {
-  login.mutate(data, {
-   onSuccess(data) {
-    toast.add({
-     type: "success",
-     description: data?.message
-    })
-    router.push("/")
+  const router = useRouter()
+  const { login } = useUserMutations()
+  const [showPassword, setShowPassword] = useState(false);
+  const form = useForm<LoginSchemaDTO>({
+   defaultValues: {
+    email: '',
+    password: '',
    },
-   onError: (error) => {
-    toast.add({
-     type: "error",
-     description: error.message
-    })
+   resolver: zodResolver(loginSchema),
+  });
 
-   }
-  })
- }
- return (
-  <div className='w-full'>
-   <header className='mb-8 sm:mb-10'>
-    <h1 className='text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.045em] text-[#172033] sm:text-[2.75rem]'>
-     Welcome back
-    </h1>
-    <p className='mt-3 max-w-md text-[15px] leading-6 text-[#5F6B7A] sm:text-base'>
-     Enter your details to continue to your account.
-    </p>
-   </header>
+  const emailError = form.formState.errors.email;
+  const passwordError = form.formState.errors.password;
+  const isSubmitting = form.formState.isSubmitting || login.isPending
 
-   <form onSubmit={form.handleSubmit(handleLogin)}>
+
+  const handleLogin: SubmitHandler<LoginSchemaDTO> = (data) => {
+   login.mutate(data, {
+    onSuccess(data) {
+     toast.add({
+      type: "success",
+      description: data?.message
+     })
+
+     // the API holds back the session until the second factor is answered
+     if (data?.data?.isMfaEnabled) {
+      router.replace("/auth/mfa")
+      return
+     }
+
+     router.push("/")
+    },
+    onError: (error) => {
+     toast.add({
+      type: "error",
+      description: error.message
+     })
+
+    }
+   })
+  }
+
+  return (
+   <div className='w-full'>
+    <header className='mb-8 sm:mb-10'>
+     <h1 className='text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.045em] text-[#172033] sm:text-[2.75rem]'>
+      Welcome back
+     </h1>
+     <p className='mt-3 max-w-md text-[15px] leading-6 text-[#5F6B7A] sm:text-base'>
+      Enter your details to continue to your account.
+     </p>
+    </header>
+
+    <form onSubmit={form.handleSubmit(handleLogin)}>
+
     <FieldGroup className='gap-5'>
      <Field data-invalid={Boolean(emailError)} className='gap-2'>
       <FieldLabel htmlFor='login-email' className='text-sm font-medium text-[#344054]'>
@@ -125,18 +134,19 @@ export default function LoginModule() {
       <Spinner />
       Signing in
      </> : 'Sign in'}
-    </Button>
-   </form>
+</Button>
+     </form>
 
-   <p className='mt-8 text-center text-sm text-[#5F6B7A]'>
-    New here?{' '}
-    <Link
-     href='/auth/register'
-     className='rounded font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
-    >
-     Create an account
-    </Link>
-   </p>
-  </div>
- );
+     <p className='mt-8 text-center text-sm text-[#5F6B7A]'>
+      New here?{' '}
+      <Link
+       href='/auth/register'
+       className='rounded font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
+      >
+       Create an account
+      </Link>
+     </p>
+   </div>
+  );
 }
+
