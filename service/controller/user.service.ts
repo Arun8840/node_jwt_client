@@ -5,6 +5,7 @@ import {
   LoginSchemaDTO,
   RegisterSchemaDTO,
   ResetMfaDTO,
+  UpdateUserSchemaDTO,
   VerifyMfaDTO,
 } from "@/schema/user.schema"
 import { publicApi } from "../apiClient"
@@ -22,17 +23,17 @@ const USERMANAGEMENT = "/users"
 export const userServices = {
   login: async (req: LoginSchemaDTO) => {
     const { data } = await publicApi.post<ApiResponse<LoginResponse>>(
-     `${USERMANAGEMENT}/login`,
-     req,
-   )
-   return data
+      `${USERMANAGEMENT}/login`,
+      req,
+    )
+    return data
   },
 
   logout: async () => {
     const { data } = await publicApi.post<ApiResponse>(
-    `${USERMANAGEMENT}/logout`,
-  )
-   return data
+      `${USERMANAGEMENT}/logout`,
+    )
+    return data
   },
   register: async (req: RegisterSchemaDTO) => {
     const { confirmPassword, ...rest } = req
@@ -42,17 +43,27 @@ export const userServices = {
     )
     return data
   },
+
   getUsers: async () => {
     const { data } = await publicApi.get<ApiResponse>(
-    `${USERMANAGEMENT}`,
-  )
-   return data
+      `${USERMANAGEMENT}`,
+    )
+    return data
   },
   getMe: async () => {
     const { data } = await publicApi.get<ApiResponse<ProfileReponse>>(
-    `${USERMANAGEMENT}/getme`,
-  )
-   return data
+      `${USERMANAGEMENT}/getme`,
+    )
+    return data
+  },
+
+  updateUser: async (req: UpdateUserSchemaDTO, userId: string) => {
+    const { confirmPassword, ...rest } = req
+    const { data } = await publicApi.put<ApiResponse>(
+      `${USERMANAGEMENT}/${userId}`,
+      rest,
+    )
+    return data
   },
 
   enableMfa: async (req: EnableMfaDTO) => {

@@ -8,6 +8,7 @@ import {
   LoginSchemaDTO,
   RegisterSchemaDTO,
   ResetMfaDTO,
+  UpdateUserSchemaDTO,
   VerifyMfaDTO,
 } from "@/schema/user.schema"
 
@@ -26,6 +27,13 @@ export const useUserMutations = () => {
     mutationKey: userKeys.register,
     mutationFn: (req: RegisterSchemaDTO) => userServices.register(req),
     retry: false
+  })
+
+  const updateUser = useMutation({
+    mutationKey: userKeys.updateUser,
+    mutationFn: ({ req, userId }: { req: UpdateUserSchemaDTO; userId: string }) => userServices.updateUser(req, userId),
+    retry: false,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.getMe })
   })
 
   const logout = useMutation({
@@ -78,7 +86,8 @@ export const useUserMutations = () => {
     confirmMfa,
     disableMfa,
     verifyMfa,
-    resetMfa
+    resetMfa,
+    updateUser
   }
 
 }

@@ -9,4 +9,5 @@ export const userKeys = {
   disableMfa: ["disableMfa"],
   verifyMfa: ["verifyMfa"],
   resetMfa: ["resetMfa"],
+  updateUser: ["updateUser"],
 }
