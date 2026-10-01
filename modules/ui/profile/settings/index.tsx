@@ -1,9 +1,10 @@
 "use client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileReponse } from '@/types';
-import { ShieldCheck, User } from 'lucide-react';
+import { ShieldCheck, Sun, User } from 'lucide-react';
 import GeneralSettings from './general';
 import SecuritySettings from './security';
+import ThemeSettings from './theme';
 
 interface SettingsProps {
   user: ProfileReponse
@@ -19,12 +20,18 @@ export default function Settings({ user }: SettingsProps) {
         <TabsTrigger value="security">
           <ShieldCheck /> Security
         </TabsTrigger>
+        <TabsTrigger value="theme">
+          <Sun /> Theme
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="general" keepMounted>
         <GeneralSettings user={user} />
       </TabsContent>
       <TabsContent value="security" keepMounted>
         <SecuritySettings user={user} />
+      </TabsContent>
+      <TabsContent value="theme" keepMounted>
+        <ThemeSettings />
       </TabsContent>
     </Tabs>
   );

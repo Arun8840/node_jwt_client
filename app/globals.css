@@ -45,6 +45,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
 }
 
 :root {
@@ -72,6 +80,14 @@
   --chart-4: oklch(0.364 0.029 323.89);
   --chart-5: oklch(0.263 0.024 320.12);
   --radius: 0.625rem;
+  --shadow-2xs: 0 1px 2px 0 oklch(0.145 0.008 326 / 0.04);
+  --shadow-xs: 0 1px 2px 0 oklch(0.145 0.008 326 / 0.06);
+  --shadow-sm: 0 1px 3px 0 oklch(0.145 0.008 326 / 0.07), 0 1px 2px -1px oklch(0.145 0.008 326 / 0.05);
+  --shadow: 0 2px 4px -1px oklch(0.145 0.008 326 / 0.08), 0 2px 6px -2px oklch(0.145 0.008 326 / 0.05);
+  --shadow-md: 0 4px 8px -2px oklch(0.145 0.008 326 / 0.09), 0 2px 4px -2px oklch(0.145 0.008 326 / 0.05);
+  --shadow-lg: 0 8px 16px -4px oklch(0.145 0.008 326 / 0.1), 0 4px 8px -4px oklch(0.145 0.008 326 / 0.05);
+  --shadow-xl: 0 16px 24px -6px oklch(0.145 0.008 326 / 0.12), 0 8px 12px -6px oklch(0.145 0.008 326 / 0.06);
+  --shadow-2xl: 0 24px 48px -12px oklch(0.145 0.008 326 / 0.16);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0.008 326);
   --sidebar-primary: oklch(0.212 0.019 322.12);
